@@ -1,8 +1,9 @@
 package wodin
 
 import "core:os"
-import "core:fmt"
 import "core:slice"
+
+WAD :: ^[]byte
 
 Header :: struct {
 	type: WadType,
@@ -18,11 +19,30 @@ WadType :: enum {
 
 Wad :: struct {
 	header: Header,
+	directory: Directory,
 	data: ^[]byte,
 }
 
+Lump :: struct {
+
+}
+
+File_Info :: struct {
+	offset: u32,
+	size: u32,
+}
+
+Directory :: struct {
+	files: [dynamic]File,
+}
+
+File :: struct {
+	info: File_Info,
+	label: string,
+}
+
 @(private)
-read_header :: proc(data: ^[]byte) -> (header: Header) {
+read_header :: proc(data: WAD) -> (header: Header) {
 	ascii := string(data[0:4])
 
 	if ascii == "IWAD" {
@@ -50,6 +70,11 @@ load_wad :: proc(filename: string) -> (wad: Wad, ok: bool) {
 	return
 }
 
+load_directory :: proc(data: WAD) {
+	
+}
+
 unload_wad :: proc(wad: ^Wad) {
 	delete(wad.data^)
+	delete(wad.directory.files)
 }
