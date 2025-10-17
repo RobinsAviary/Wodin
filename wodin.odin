@@ -39,24 +39,18 @@ Wad :: struct {
 	data: ^[]byte,
 }
 
-Lump :: struct {
+Lump :: []byte
+
+/*Lump :: struct {
+	
 	offset: u32,
 	size: u32,
-}
+}*/
 
 File :: struct {
 	label: string,
 	lump: Lump,
 }
-
-/*
-Lump :: []byte
-
-File :: struct {
-	label: string,
-	lump: Lump
-}
-*/
 
 Directory :: struct {
 	lumps: map[string]Lump,
@@ -104,15 +98,18 @@ load_wad :: proc(filename: string, allocator := context.allocator, loc := #calle
 
 load_directory :: proc(wad: ^Wad, loc := #caller_location) {
 	// Grab a slice of all the data we need
-	data := wad.data[wad.header.offset:wad.header.offset + (wad.header.lumps * LUMP_SIZE)]
+	data := wad.data[wad.header.offset:][:wad.header.lumps * LUMP_SIZE]
 
 	for i in 0 ..< wad.header.lumps {
 		offset := i * LUMP_SIZE
 
 		lump: Lump
 
-		lump.offset = slice.to_type(data[offset:][:4], u32)
-		lump.size = slice.to_type(data[offset+4:][:8], u32)
+		lump_offset := slice.to_type(data[offset:][:4], u32)
+		lump_size := slice.to_type(data[offset+4:][:8], u32)
+
+		lump = wad.data[lump_offset:][:lump_size]
+
 		label := strings.trim_right_null(string(data[offset+8:][:8]))
 
 		wad.directory.lumps[label] = lump
