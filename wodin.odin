@@ -5,7 +5,10 @@ import "core:slice"
 import "core:strings"
 import "core:fmt"
 
-LUMP_SIZE :: 16
+LUMP_SIZE : u32 : 16
+PALETTE_SIZE : u32 : 256
+
+
 
 Header :: struct {
 	type: WadType,
@@ -16,11 +19,11 @@ Header :: struct {
 PaletteColor :: distinct [3]u8
 
 Palette :: struct {
-	[256]PaletteColor,
+	colors: [PALETTE_SIZE]PaletteColor,
 }
 
-Playpal_Doom :: struct {
-	[14]Palette
+Playpal :: struct {
+	palettes: [14]Palette
 }
 
 WadType :: enum {
@@ -32,25 +35,23 @@ WadType :: enum {
 Wad :: struct {
 	header: Header,
 	directory: Directory,
+	playpal: Playpal,
 	data: ^[]byte,
 }
 
 Lump :: struct {
-
-}
-
-File_Info :: struct {
 	offset: u32,
 	size: u32,
 }
 
-Directory :: struct {
-	files: [dynamic]File,
+File :: struct {
+	label: string,
+	lump: Lump,
 }
 
-File :: struct {
-	info: File_Info,
-	label: string,
+Directory :: struct {
+	lumps: map[string]Lump,
+	files: [dynamic]File,
 }
 
 @(private)
@@ -76,6 +77,7 @@ read_header :: proc(data: ^[]byte) -> (header: Header) {
 }
 
 load_wad :: proc(filename: string, allocator := context.allocator, loc := #caller_location) -> (wad: Wad, ok: bool) {
+	wad.directory.lumps = make(map[string]Lump, allocator, loc)
 	wad.directory.files = make([dynamic]File, allocator, loc)
 
 	data, file_ok := os.read_entire_file(filename, allocator, loc)
@@ -86,6 +88,8 @@ load_wad :: proc(filename: string, allocator := context.allocator, loc := #calle
 
 	load_directory(&wad, loc)
 
+	load_playpal(&wad)
+
 	return
 }
 
@@ -93,20 +97,26 @@ load_directory :: proc(wad: ^Wad, loc := #caller_location) {
 	// Grab a slice of all the data we need
 	data := wad.data[wad.header.offset:wad.header.offset + (wad.header.lumps * LUMP_SIZE)]
 
-	file: File
-
-	for i: u32; i < wad.header.lumps; i += 1 {
+	for i in 0 ..< wad.header.lumps {
 		offset := i * LUMP_SIZE
 
-		file.info.offset = slice.to_type(data[offset:offset+4], u32)
-		file.info.size = slice.to_type(data[offset+4:offset+8], u32)
-		file.label = strings.trim_right_null(string(data[offset+8:offset+16]))
+		lump: Lump
 
-		append_elem(&wad.directory.files, file, loc)
+		lump.offset = slice.to_type(data[offset:offset+4], u32)
+		lump.size = slice.to_type(data[offset+4:offset+8], u32)
+		label := strings.trim_right_null(string(data[offset+8:offset+16]))
+
+		wad.directory.lumps[label] = lump
+		append_elem(&wad.directory.files, File {label, lump}, loc)
 	}
+}
+
+load_playpal :: proc(wad: ^Wad) {
+	
 }
 
 unload_wad :: proc(wad: ^Wad, allocator := context.allocator, loc := #caller_location) {
 	delete(wad.data^, allocator, loc)
 	delete(wad.directory.files, loc)
+	delete(wad.directory.lumps, loc)
 }
