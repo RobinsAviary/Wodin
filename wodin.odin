@@ -49,6 +49,15 @@ File :: struct {
 	lump: Lump,
 }
 
+/*
+Lump :: []byte
+
+File :: struct {
+	label: string,
+	lump: Lump
+}
+*/
+
 Directory :: struct {
 	lumps: map[string]Lump,
 	files: [dynamic]File,
@@ -102,9 +111,9 @@ load_directory :: proc(wad: ^Wad, loc := #caller_location) {
 
 		lump: Lump
 
-		lump.offset = slice.to_type(data[offset:offset+4], u32)
-		lump.size = slice.to_type(data[offset+4:offset+8], u32)
-		label := strings.trim_right_null(string(data[offset+8:offset+16]))
+		lump.offset = slice.to_type(data[offset:][:4], u32)
+		lump.size = slice.to_type(data[offset+4:][:8], u32)
+		label := strings.trim_right_null(string(data[offset+8:][:8]))
 
 		wad.directory.lumps[label] = lump
 		append_elem(&wad.directory.files, File {label, lump}, loc)
