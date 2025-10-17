@@ -78,8 +78,8 @@ read_header :: proc(data: ^[]byte) -> (header: Header) {
 	if header.type != .Unknown {
 		ok: bool
 
-		header.lumps, ok = slice.to_type(data[4:9], u32)
-		header.offset, ok = slice.to_type(data[8:13], u32)
+		header.lumps, ok = slice.to_type(data[4:][:4], u32)
+		header.offset, ok = slice.to_type(data[8:][:4], u32)
 	}
 
 	return
