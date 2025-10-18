@@ -5,10 +5,10 @@ import "core:slice"
 import "core:strings"
 import "core:fmt"
 
-LUMP_SIZE : u32 : 16
+LUMPDEF_SIZE : u32 : 16
 PALETTE_SIZE : u32 : 256
-
-
+DOOM_PALETTE_COUNT : u32 : 14
+PALETTE_COLOR_SIZE : u32 : 3
 
 Header :: struct {
 	type: WadType,
@@ -22,9 +22,7 @@ Palette :: struct {
 	colors: [PALETTE_SIZE]PaletteColor,
 }
 
-Playpal :: struct {
-	palettes: [14]Palette
-}
+Playpal :: [DOOM_PALETTE_COUNT]Palette
 
 WadType :: enum {
 	IWAD,
@@ -98,10 +96,10 @@ load_wad :: proc(filename: string, allocator := context.allocator, loc := #calle
 
 load_directory :: proc(wad: ^Wad, loc := #caller_location) {
 	// Grab a slice of all the data we need
-	data := wad.data[wad.header.offset:][:wad.header.lumps * LUMP_SIZE]
+	data := wad.data[wad.header.offset:][:wad.header.lumps * LUMPDEF_SIZE]
 
 	for i in 0 ..< wad.header.lumps {
-		offset := i * LUMP_SIZE
+		offset := i * LUMPDEF_SIZE
 
 		lump: Lump
 
@@ -118,7 +116,14 @@ load_directory :: proc(wad: ^Wad, loc := #caller_location) {
 }
 
 load_playpal :: proc(wad: ^Wad) {
-	
+	playpal_lump := wad.directory.lumps["PLAYPAL"]
+
+	for paletteI in 0..< DOOM_PALETTE_COUNT {
+		for colorI in 0 ..< PALETTE_SIZE {
+			color_data := playpal_lump[(paletteI * (PALETTE_COLOR_SIZE * PALETTE_SIZE)) + (colorI * PALETTE_COLOR_SIZE):][:PALETTE_COLOR_SIZE]
+			wad.playpal[paletteI].colors[colorI].rgb = {color_data[0], color_data[1], color_data[2]}
+		}
+	}
 }
 
 unload_wad :: proc(wad: ^Wad, allocator := context.allocator, loc := #caller_location) {
