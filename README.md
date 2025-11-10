@@ -20,3 +20,6 @@ Here is what is planned:
 - Patches
 - Textures
 - Sounds
+- Monsters
+- Monster States
+- Maps
