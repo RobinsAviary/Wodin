@@ -14,3 +14,9 @@ Here is what is currently supported:
 - Palette Colors
 - Pictures
 - Flats
+
+Here is what is planned:
+
+- Patches
+- Textures
+- Sounds
