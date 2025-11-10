@@ -27,3 +27,4 @@ Here is what is planned:
 - Monsters
 - Monster States
 - Maps
+- Supplementary library to make working with raylib easy.
