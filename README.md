@@ -6,6 +6,8 @@ The original doom source code was released under the GPL-2.0 license. This proje
 
 Please respect the copyright of ID Software and Doom, and purchase the game on official platforms of release.
 
+You can also use [Freedoom](https://freedoom.github.io/).
+
 Support for Doom I/II IWADs & PWADs
 
 Here is what is currently supported:
