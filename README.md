@@ -18,13 +18,15 @@ Here is what is currently supported:
 - Palette Colors
 - Pictures
 - Flats
+- Sounds
 
 Here is what is planned:
 
 - Patches
 - Textures
-- Sounds
 - Monsters
 - Monster States
 - Maps
 - Supplementary library to make working with raylib easy.
+- PNG Export
+- WAV Export
