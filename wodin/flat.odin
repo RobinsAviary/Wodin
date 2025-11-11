@@ -11,7 +11,3 @@ load_flat :: proc(data: []byte) -> (flat: Flat) {
 
 	return
 }
-
-unload_flat :: proc(flat: Flat) {
-	// nothing required
-}
