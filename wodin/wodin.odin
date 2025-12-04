@@ -133,7 +133,7 @@ unload_wad :: proc(wad: ^Wad, allocator := context.allocator, loc := #caller_loc
 	}
 }
 
-read_textlump :: proc(wad: Wad, lump: string) -> (textlump: string) {
+read_text :: proc(wad: Wad, lump: string) -> (textlump: string) {
 	if !(lump in wad.directory.lumps) do return
 	
 	return string(wad.directory.lumps[lump])
