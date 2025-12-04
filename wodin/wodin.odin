@@ -112,6 +112,8 @@ read_directory :: proc(wad: ^Wad, loc := #caller_location) {
 }
 
 read_playpal :: proc(wad: ^Wad) {
+	if !("PLAYPAL" in wad.directory.lumps) do return
+
 	playpal_lump := wad.directory.lumps["PLAYPAL"]
 
 	for paletteI in 0..< DOOM_PALETTE_COUNT {
@@ -123,7 +125,16 @@ read_playpal :: proc(wad: ^Wad) {
 }
 
 unload_wad :: proc(wad: ^Wad, allocator := context.allocator, loc := #caller_location) {
-	delete(wad.data^, allocator, loc)
-	delete(wad.directory.files, loc)
-	delete(wad.directory.lumps, loc)
+	// Check if this is actually a loaded WAD first, to avoid unexpected crashes
+	if wad.data != nil {
+		delete(wad.data^, allocator, loc)
+		delete(wad.directory.files, loc)
+		delete(wad.directory.lumps, loc)
+	}
+}
+
+read_textlump :: proc(wad: Wad, lump: string) -> (textlump: string) {
+	if !(lump in wad.directory.lumps) do return
+	
+	return string(wad.directory.lumps[lump])
 }
