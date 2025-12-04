@@ -19,6 +19,7 @@ Here is what is currently supported:
 - Pictures
 - Flats
 - Sounds
+- Text
 
 Here is what is planned:
 
