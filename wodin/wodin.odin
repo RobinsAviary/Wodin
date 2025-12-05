@@ -134,9 +134,6 @@ read_playpal :: proc(wad: ^Wad) {
 }
 
 unload_wad :: proc(wad: ^Wad, allocator := context.allocator, loc := #caller_location) {
-	// Check if this is actually a loaded WAD first, to avoid unexpected crashes
-	if wad.data == nil do return
-	
 	delete(wad.data, allocator, loc)
 	delete(wad.directory.files, allocator, loc)
 	delete(wad.directory.lumps, loc)
