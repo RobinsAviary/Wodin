@@ -1,5 +1,10 @@
 package wodin
 
+// short for wad-odin
+// written by Robin <3
+// https://robinsaviary.com
+// thanks for the cool game, [id]!
+
 import "core:os"
 import "core:slice"
 import "core:strings"
@@ -36,7 +41,7 @@ Wad :: struct {
 	header: Header,
 	directory: Directory,
 	playpal: Playpal,
-	data: ^[]byte,
+	data: []byte,
 }
 
 Lump :: []byte
@@ -76,8 +81,8 @@ read_header :: proc(data: ^[]byte) -> (header: Header) {
 load_wad :: proc(filename: string, allocator := context.allocator, loc := #caller_location) -> (wad: Wad, ok: bool) {
 	data, file_ok := os.read_entire_file(filename, allocator, loc)
 
-	wad.data = &data
-	wad.header = read_header(wad.data)
+	wad.data = data
+	wad.header = read_header(&wad.data)
 	if wad.header.type == .Unknown do return
 
 	wad.directory.lumps = make(map[string]Lump, allocator, loc)
@@ -132,7 +137,7 @@ unload_wad :: proc(wad: ^Wad, allocator := context.allocator, loc := #caller_loc
 	// Check if this is actually a loaded WAD first, to avoid unexpected crashes
 	if wad.data == nil do return
 	
-	delete(wad.data^, allocator, loc)
+	delete(wad.data, allocator, loc)
 	delete(wad.directory.files, allocator, loc)
 	delete(wad.directory.lumps, loc)
 }
