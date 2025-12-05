@@ -1,5 +1,10 @@
 package wodin
 
+// short for wad-odin
+// written by Robin <3
+// https://robinsaviary.com
+// thanks for the cool game, [id]!
+
 import "core:os"
 import "core:slice"
 import "core:strings"
