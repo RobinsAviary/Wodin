@@ -48,7 +48,7 @@ File :: struct {
 
 Directory :: struct {
 	lumps: map[string]Lump,
-	files: [dynamic]File,
+	files: []File,
 }
 
 @(private)
@@ -74,14 +74,14 @@ read_header :: proc(data: ^[]byte) -> (header: Header) {
 }
 
 load_wad :: proc(filename: string, allocator := context.allocator, loc := #caller_location) -> (wad: Wad, ok: bool) {
-	wad.directory.lumps = make(map[string]Lump, allocator, loc)
-	wad.directory.files = make([dynamic]File, allocator, loc)
-
 	data, file_ok := os.read_entire_file(filename, allocator, loc)
 
 	wad.data = &data
 	wad.header = read_header(wad.data)
 	if wad.header.type == .Unknown do return
+
+	wad.directory.lumps = make(map[string]Lump, allocator, loc)
+	wad.directory.files = make([]File, wad.header.lumps, allocator, loc)
 
 	read_directory(&wad, loc)
 
@@ -107,12 +107,16 @@ read_directory :: proc(wad: ^Wad, loc := #caller_location) {
 		label := strings.trim_right_null(string(data[offset+8:][:8]))
 
 		wad.directory.lumps[label] = lump
-		append_elem(&wad.directory.files, File {label, lump}, loc)
+		wad.directory.files[i] = {label, lump}
 	}
 }
 
+lump_exists :: proc(wad: Wad, lump: string) -> (exists: bool) {
+	return lump in wad.directory.lumps
+}
+
 read_playpal :: proc(wad: ^Wad) {
-	if !("PLAYPAL" in wad.directory.lumps) do return
+	if !lump_exists(wad^, "PLAYPAL") do return
 
 	playpal_lump := wad.directory.lumps["PLAYPAL"]
 
@@ -126,15 +130,15 @@ read_playpal :: proc(wad: ^Wad) {
 
 unload_wad :: proc(wad: ^Wad, allocator := context.allocator, loc := #caller_location) {
 	// Check if this is actually a loaded WAD first, to avoid unexpected crashes
-	if wad.data != nil {
-		delete(wad.data^, allocator, loc)
-		delete(wad.directory.files, loc)
-		delete(wad.directory.lumps, loc)
-	}
+	if wad.data == nil do return
+	
+	delete(wad.data^, allocator, loc)
+	delete(wad.directory.files, allocator, loc)
+	delete(wad.directory.lumps, loc)
 }
 
 read_text :: proc(wad: Wad, lump: string) -> (textlump: string) {
-	if !(lump in wad.directory.lumps) do return
+	if !lump_exists(wad, lump) do return
 	
 	return string(wad.directory.lumps[lump])
 }
