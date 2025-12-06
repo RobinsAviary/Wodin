@@ -41,7 +41,7 @@ Wad :: struct {
 	header: Header,
 	directory: Directory,
 	playpal: Playpal,
-	data: ^[]byte,
+	data: []byte,
 }
 
 Lump :: []byte
@@ -57,7 +57,7 @@ Directory :: struct {
 }
 
 @(private)
-read_header :: proc(data: ^[]byte) -> (header: Header) {
+read_header :: proc(data: []byte) -> (header: Header) {
 	ascii := string(data[0:4])
 
 	if ascii == "IWAD" {
@@ -79,9 +79,11 @@ read_header :: proc(data: ^[]byte) -> (header: Header) {
 }
 
 load_wad :: proc(filename: string, allocator := context.allocator, loc := #caller_location) -> (wad: Wad, ok: bool) {
+	ok = true
 	data, file_ok := os.read_entire_file(filename, allocator, loc)
+	if !file_ok do ok = false
 
-	wad.data = &data
+	wad.data = data
 	wad.header = read_header(wad.data)
 	if wad.header.type == .Unknown do return
 
@@ -134,10 +136,7 @@ read_playpal :: proc(wad: ^Wad) {
 }
 
 unload_wad :: proc(wad: ^Wad, allocator := context.allocator, loc := #caller_location) {
-	// Check if this is actually a loaded WAD first, to avoid unexpected crashes
-	if wad.data == nil do return
-	
-	delete(wad.data^, allocator, loc)
+	delete(wad.data, allocator, loc)
 	delete(wad.directory.files, allocator, loc)
 	delete(wad.directory.lumps, loc)
 }
